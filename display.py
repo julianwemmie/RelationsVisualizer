@@ -1,5 +1,8 @@
 
 import turtle
+import fdg
+from config import fdg_iterations as iter_fdg
+from config import node_color, line_color
 
 def init_turtle():
     window = turtle.Screen()
@@ -50,4 +53,18 @@ def printName(turt, nodes):
         turt.up()   
         turt.setpos(node.xy[0], node.xy[1]+10)
         turt.write(f'{node.name}', align='center', 
-                         font=('Arial', 10, 'bold'))  
+                         font=('Arial', 10, 'bold')) 
+                         
+def drawGraph(nodes):
+    turt, window = init_turtle()
+
+    # turtle screen quits after turtle.done, so need to reinitialize
+    turtle.TurtleScreen._RUNNING = True
+
+    fdg.apply_fdg(nodes, iter_fdg)
+    connectNodes(turt, nodes, line_color)
+    drawNodes(turt, nodes, node_color)
+    printName(turt, nodes)
+
+    window.update()
+    turtle.done() 

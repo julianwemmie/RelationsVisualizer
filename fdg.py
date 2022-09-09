@@ -2,8 +2,13 @@
 import math
 import numpy as np
 from random import randint
+from config import weights
 
-c1, c2, c3, c4, c5 = 80, 100, 1000, 0.05, 1000
+c1 = weights['c1']
+c2 = weights['c2']
+c3 = weights['c3']
+c4 = weights['c4']
+c5 = weights['c5']
 
 def spring_force(node, otherNode):
     dist = math.dist(node, otherNode)
@@ -32,6 +37,11 @@ def randomPos(nodes, dim):
         b = randint(-dim, dim)
         node.xy = np.array([a,b], dtype = np.float64)
 
+def limit(t):
+    if t == 0:
+        t = 1
+    return c5/(t)
+
 def do_FDG(nodes, t = 0):   
     F = {}
     
@@ -49,7 +59,8 @@ def do_FDG(nodes, t = 0):
     for node in nodes:
         node.xy += F[node.name]
         
-def limit(t):
-    if t == 0:
-        t = 1
-    return c5/(t)
+def apply_fdg(nodes: list, iterations: int):
+    randomPos(nodes, 100)
+
+    for i in range(iterations):
+        do_FDG(nodes, i)
