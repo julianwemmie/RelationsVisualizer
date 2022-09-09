@@ -2,7 +2,7 @@
 import os, turtle
 from display import init_turtle, connectNodes, drawNodes, printName
 import node as n
-from force_directed_graph import do_FDG, randomPos
+from fdg import do_FDG, randomPos
 
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
