@@ -2,13 +2,13 @@
 import math
 import numpy as np
 from random import randint
-from config import weights
+from config import fdg_weights
 
-c1 = weights['c1']
-c2 = weights['c2']
-c3 = weights['c3']
-c4 = weights['c4']
-c5 = weights['c5']
+c1 = fdg_weights['c1']
+c2 = fdg_weights['c2']
+c3 = fdg_weights['c3']
+c4 = fdg_weights['c4']
+c5 = fdg_weights['c5']
 
 def spring_force(node, otherNode):
     dist = math.dist(node, otherNode)
