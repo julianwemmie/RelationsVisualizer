@@ -91,12 +91,10 @@ Edit/View Relations:
             print('Invalid entry\n')
             
 def viewNodes(nodes: list):
-    if not len(nodes):
-        print('Currently (0) nodes.\n')
-    else:
-        print(f'Currently ({len(nodes)}) nodes:')
-        print(f'    -{", ".join(sorted([node.name for node in nodes]))}')
-        print()
+    print(f'Currently ({len(nodes)}) nodes:')
+    if len(nodes):
+        print(f'    -{", ".join(sorted(Node.node_names))}')
+    print()
 
 def addNodes(nodes: list, toAdd: str):
     if not len(toAdd):
@@ -107,7 +105,7 @@ def addNodes(nodes: list, toAdd: str):
     for node in toAdd.split(','):
         if node == '':
             continue
-        if node in [node.name for node in nodes]:
+        if node in Node.node_names:
             print(f'Node already exists: {node}')
             continue
         nodes.append(Node(node))  
@@ -128,6 +126,7 @@ def removeNodes(nodes: list, toRemove: str):
                 removed.append(existingNode)
                 
     for node in removed:
+        Node.removeNode(node)
         for edge in node.edges:
             edge.edges.remove(node)
             
@@ -149,7 +148,7 @@ def addRelation(nodes: list, toAdd):
 
     toAdd = toAdd.split(',')
     for node in toAdd:
-        if node not in [node.name for node in nodes]:
+        if node not in Node.node_names:
             print('One or more nodes does not exist. \n')
             return
 
@@ -170,7 +169,7 @@ def removeRelation(nodes: list, toRemove):
     toRemove = toRemove.split(',')
 
     for node in toRemove:
-        if node not in [node.name for node in nodes]:
+        if node not in Node.node_names:
             print('One or more nodes does not exist. \n')
             return   
         
