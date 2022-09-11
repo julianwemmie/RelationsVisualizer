@@ -142,6 +142,7 @@ def viewRelations(nodes):
             print(node)
 
 def addRelation(nodes: list, toAdd):
+    # TODO: doesn't catch already existing relations
     if len(toAdd) < 3:
             print('Specify relations to add. Ex: "-a a,b"\n')
             return    
