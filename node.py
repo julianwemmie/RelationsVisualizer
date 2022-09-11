@@ -3,7 +3,8 @@ import numpy as np
 
 class Node():
 
-    node_names = []
+    node_names = [] 
+    edge_weights = []
 
     def __init__(self, name):
         self.name = name
@@ -64,3 +65,13 @@ class Node():
     @classmethod
     def removeNode(cls, node):
         cls.node_names.remove(node.name)
+
+    @classmethod
+    def addWeight(cls, node1, node2, weight):
+        for relation in cls.edge_weights:
+            if relation[0] == set([node1, node2]):
+                relation[1] = weight
+                return
+        if not node1.related(node2):
+            raise IndexError("Relation does not exist")
+        cls.edge_weights.append([set([node1, node2]), weight])

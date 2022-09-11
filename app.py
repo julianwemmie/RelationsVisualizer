@@ -73,6 +73,8 @@ Edit/View Relations:
             '-a a,b' --> adds relation between a and b
     -r | remove relation
             '-r a,b' --> removes relation bewteen a and b (if exists)
+    -w | edit relation weight
+            '-w a,b,5 --> sets relation weight to 5
     -e | exit
     ''')
         
@@ -85,6 +87,8 @@ Edit/View Relations:
             addRelation(nodes, entry[3:])
         elif selection == '-r':
             removeRelation(nodes, entry[3:])
+        elif selection == '-w':
+            editRelationWeight(nodes, entry[3:])
         elif selection == '-e':
             return
         else:
@@ -133,13 +137,17 @@ def removeNodes(nodes: list, toRemove: str):
     print(f'Successfully removed node(s): {", ".join([node.name for node in removed])}\n')
             
 def viewRelations(nodes):
-    if not len(nodes):
-        print('No nodes defined.\n')
+    if not len(Node.edge_weights):
+        print('No relations defined.\n')
         return
     else:
-        print('Node: [Relations]')
-        for node in sorted(nodes):
-            print(node)
+        print('Relation | Weight')
+        for relation in Node.edge_weights:
+            node1 = list(relation[0])[0]
+            node2 = list(relation[0])[1]
+            weight = relation[1]
+
+            print(f'{node1.name} <-> {node2.name} | {weight}')
 
 def addRelation(nodes: list, toAdd):
     # TODO: doesn't catch already existing relations
@@ -160,6 +168,7 @@ def addRelation(nodes: list, toAdd):
             toAdd[1] = node
 
     toAdd[0].connect(toAdd[1])
+    Node.addWeight(toAdd[0], toAdd[1], 0)
     print(f'Successfully added relation: {toAdd[0].name}, {toAdd[1].name}\n')
 
 def removeRelation(nodes: list, toRemove):
@@ -181,6 +190,43 @@ def removeRelation(nodes: list, toRemove):
             toRemove[1] = node
     toRemove[0].disconnect(toRemove[1])
     print(f'Successfully removed relation: {toRemove[0].name}, {toRemove[1].name}\n')
+
+def editRelationWeight(nodes: list, toEdit: str):
+    if len(toEdit.strip()) < 5:
+        print("Invalid Input\n")
+        return
+
+    try:
+        node1, node2, weight = toEdit.split(',')
+    except ValueError:
+        print('Invalid Input\n')
+        return
+
+    if node1 == node2:
+        print('Node cannot relate to itself\n')
+        return
+
+    if (node1 or node2) not in Node.node_names:
+        print('One or more nodes does not exist\n')
+        return
+
+    if not weight.isnumeric():
+        print('Weight must be an integer\n')
+        return
+
+    weight = int(weight)
+
+    for node in nodes:
+        if node.name == node1:
+            node1 = node
+        if node.name == node2:
+            node2 = node
+
+    try:
+        Node.addWeight(node1, node2, weight)
+    except IndexError:
+        print("Relation does not exist\n")
+        return
     
 if __name__ == '__main__':
     main()
