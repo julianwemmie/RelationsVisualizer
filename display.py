@@ -1,6 +1,7 @@
 
 import turtle
 import fdg
+from node import Node
 from config import display_config
 
 fdg_iterations = display_config["fdg_iterations"]
@@ -28,11 +29,13 @@ def drawNode(turt, xy, color = "black"):
     turt.pencolor(color)
     turt.ht()
     turt.up()
+
     turt.setpos(x,y)
-    turt.dot(20, "white")
-    turt.setpos(x,y - 10)
+    turt.dot(25, "white")
+
+    turt.setpos(x,y - 12.5)
     turt.down()
-    turt.circle(10)
+    turt.circle(12.5)
     
 def connectNodes(turt, nodes, color = 'black'):
     for node in nodes:
@@ -64,7 +67,29 @@ def printNames(turt, nodes, font_color = "black"):
         turt.up()   
         turt.setpos(x + 1, y - 8)
         turt.write(f'{node.name}', align='center', 
-                         font=('Arial', 10, 'bold')) 
+                         font=('Arial', 10, 'bold'))
+
+def printWeights(turt, font_color = 'black'):
+    for relation in Node.edge_weights:
+        x1, y1 = list(relation[0])[0].xy
+        x2, y2 = list(relation[0])[1].xy
+
+        mid_x = (x1 + x2) / 2
+        mid_y = (y1 + y2) / 2
+
+
+        turt.pencolor(font_color)
+        turt.ht()
+        turt.up()
+
+        turt.setpos((mid_x, mid_y))
+        turt.dot(20, 'lightgrey')
+
+        turt.setpos((mid_x + 1, mid_y - 8))
+        turt.write(f'{relation[1]}', align='center', 
+                         font=('Arial', 10, 'bold'))
+
+
                          
 def drawGraph(nodes):
     turt, window = init_turtle()
@@ -76,6 +101,7 @@ def drawGraph(nodes):
     connectNodes(turt, nodes, line_color)
     drawNodes(turt, nodes, node_color)
     printNames(turt, nodes, font_color)
+    printWeights(turt, font_color)
     
 
     window.update()
