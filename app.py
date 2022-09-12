@@ -3,11 +3,13 @@ import os, time
 import display
 from node import Node
 
+# TODO: no need for Node.node_names since made nodes into dict. need to remove Node.node_name functionality
+
 def clearScreen():
     os.system('cls' if os.name == 'nt' else 'clear')
 
 def main():
-    nodes = []
+    nodes = {}
 
     while True:
         clearScreen()
@@ -34,7 +36,7 @@ Relations Visualizer
 
 def drawGraph(nodes):
     print('...')
-    display.drawGraph(nodes)
+    display.drawGraph(nodes.values())
 
 def editNodes(nodes):
     while True:
@@ -94,40 +96,39 @@ Edit/View Relations:
         else:
             print('Invalid entry\n')
             
-def viewNodes(nodes: list):
+def viewNodes(nodes):
     print(f'Currently ({len(nodes)}) nodes:')
     if len(nodes):
         print(f'    -{", ".join(sorted(Node.node_names))}')
     print()
 
-def addNodes(nodes: list, toAdd: str):
+def addNodes(nodes, toAdd):
     if not len(toAdd):
         print('Specify nodes to add. Ex: "-a a,b,c"\n')
         return
 
     addedNodes = []
-    for node in toAdd.split(','):
+    for node in toAdd.strip().split(','):
         if node == '':
             continue
-        if node in Node.node_names:
+        if node in nodes.keys():
             print(f'Node already exists: {node}')
             continue
-        nodes.append(Node(node))  
+        nodes[node] = Node(node)
         addedNodes.append(node)
         
     print(f'Successfully added node(s): {", ".join(addedNodes)} \n')
 
-def removeNodes(nodes: list, toRemove: str):
+def removeNodes(nodes, toRemove):
     if not len(toRemove):
         print('Specify nodes to remove. Ex: "-r a,b,c"\n')
         return
     
     removed = []
-    for node in toRemove.split(','):
-        for existingNode in nodes:
-            if node == existingNode.name:
-                nodes.remove(existingNode)
-                removed.append(existingNode)
+    for node in toRemove.strip().split(','):
+        if node in nodes.keys():
+            removed.append(nodes[node])
+            del nodes[node]
                 
     for node in removed:
         Node.removeNode(node)
@@ -137,7 +138,7 @@ def removeNodes(nodes: list, toRemove: str):
     print(f'Successfully removed node(s): {", ".join([node.name for node in removed])}\n')
             
 def viewRelations(nodes):
-    if not len(Node.edge_weights):
+    if len(Node.edge_weights) == 0:
         print('No relations defined.\n')
         return
     else:
@@ -149,49 +150,57 @@ def viewRelations(nodes):
 
             print(f'{node1.name} <-> {node2.name} | {weight}')
 
-def addRelation(nodes: list, toAdd):
+def addRelation(nodes, toAdd):
     # TODO: doesn't catch already existing relations
     if len(toAdd) < 3:
             print('Specify relations to add. Ex: "-a a,b"\n')
             return    
 
-    toAdd = toAdd.split(',')
+    toAdd = toAdd.strip().split(',')
     for node in toAdd:
+        if node == '':
+            continue
         if node not in Node.node_names:
             print('One or more nodes does not exist. \n')
             return
 
-    for node in nodes:
-        if node.name == toAdd[0]:
-            toAdd[0] = node
-        if node.name == toAdd[1]:
-            toAdd[1] = node
+    node1 = toAdd[0]
+    node2 = toAdd[1]
 
-    toAdd[0].connect(toAdd[1])
-    Node.addWeight(toAdd[0], toAdd[1], 0)
-    print(f'Successfully added relation: {toAdd[0].name}, {toAdd[1].name}\n')
+    # get node object from dictionary
+    node1 = nodes[node1]
+    node2 = nodes[node2]
 
-def removeRelation(nodes: list, toRemove):
+    node1.connect(node2)
+    Node.addWeight(node1, node2, 0)
+
+    print(f'Successfully added relation: {node1.name}, {node2.name}\n')
+
+def removeRelation(nodes, toRemove):
     if len(toRemove) < 3:
             print('Specify relations to remove. Ex: "-a a,b"\n')
             return    
         
-    toRemove = toRemove.split(',')
+    toRemove = toRemove.strip().split(',')
 
     for node in toRemove:
         if node not in Node.node_names:
             print('One or more nodes does not exist. \n')
             return   
         
-    for node in nodes:
-        if node.name == toRemove[0]:
-            toRemove[0] = node
-        if node.name == toRemove[1]:
-            toRemove[1] = node
-    toRemove[0].disconnect(toRemove[1])
-    print(f'Successfully removed relation: {toRemove[0].name}, {toRemove[1].name}\n')
+    node1 = toRemove[0]
+    node2 = toRemove[1]
 
-def editRelationWeight(nodes: list, toEdit: str):
+    # get node object from dictionary
+    node1 = nodes[node1]
+    node2 = nodes[node2]
+
+    node1.disconnect(node2)
+    Node.removeRelation(node1, node2)
+
+    print(f'Successfully removed relation: {node1.name}, {node2.name}\n')
+
+def editRelationWeight(nodes, toEdit):
     if len(toEdit.strip()) < 5:
         print("Invalid Input\n")
         return
@@ -216,11 +225,8 @@ def editRelationWeight(nodes: list, toEdit: str):
 
     weight = int(weight)
 
-    for node in nodes:
-        if node.name == node1:
-            node1 = node
-        if node.name == node2:
-            node2 = node
+    node1 = nodes[node1]
+    node2 = nodes[node2]
 
     try:
         Node.addWeight(node1, node2, weight)

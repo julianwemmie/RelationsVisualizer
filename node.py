@@ -75,3 +75,11 @@ class Node():
         if not node1.related(node2):
             raise IndexError("Relation does not exist")
         cls.edge_weights.append([set([node1, node2]), weight])
+
+    @classmethod
+    def removeRelation(cls, node1, node2):
+        relation_index = 0
+        for relation in cls.edge_weights:
+            if relation[0] == set([node1, node2]):
+                relation_index = cls.edge_weights.index(relation)
+        del cls.edge_weights[relation_index]
