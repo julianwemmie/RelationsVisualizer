@@ -143,12 +143,12 @@ def viewRelations(nodes):
         return
     else:
         print('Relation | Weight')
-        for relation in Node.edge_weights:
-            node1 = list(relation[0])[0]
-            node2 = list(relation[0])[1]
+        for relation in Node.edge_weights.items():
+            node1 = relation[0][0]
+            node2 = relation[0][1]
             weight = relation[1]
 
-            print(f'{node1.name} <-> {node2.name} | {weight}')
+            print(f'{node1} <-> {node2} | {weight}')
 
 def addRelation(nodes, toAdd):
     # TODO: doesn't catch already existing relations
