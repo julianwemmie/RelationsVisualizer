@@ -1,7 +1,5 @@
 from node import Node
 
-# TODO: implement dijkstras algorthim into main app
-
 def dijkstra(nodes, start, stop):
     visited = []
     touched = []
@@ -49,6 +47,22 @@ def dijkstra(nodes, start, stop):
         # get Node object from name (which is a string)
         current = nodes.get(current)
 
+    shortest_path = _getShortestPath(shortest_prev_node, start, stop)
     final_weight = node_weights[stop.name]
 
-    return (shortest_prev_node, final_weight)
+    return (shortest_path, final_weight)
+
+def _getShortestPath(shortest_prev_node, start, stop):
+    # reverse start and stop nodes because we need to work backwards
+    start, stop = stop, start
+
+    current = start.name
+    shortest_path = []
+    while current != stop.name:
+        shortest_path.append(current)
+        current = shortest_prev_node[current]
+
+    shortest_path.append(stop.name)
+    shortest_path.reverse()
+
+    return shortest_path

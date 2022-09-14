@@ -1,8 +1,8 @@
-
 import os, time
 import display
 from node import Node
 
+# TODO: update README to include dijkstra's
 # TODO: no need for Node.node_names since made nodes into dict. need to remove Node.node_name functionality
 
 def clearScreen():
@@ -35,8 +35,42 @@ Relations Visualizer
             time.sleep(1)
 
 def drawGraph(nodes):
+    show_weights = False
+    path_algo = None
+    path_args = None
+
+    while True:
+        selection = input("Show relation weights? (Y/N):").upper()
+        if selection == "Y":
+            show_weights = True
+            break
+        elif selection == "N":
+            show_weights = False
+            break
+        else:
+            print("Invalid Input\n")
+
+    while True:
+        print('''\
+Select algorthim:
+    1) None
+    2) Dijkstra's (Greedy, Shortest path)''')
+        selection = input(' > ')
+
+        if selection == "1":
+            path_algo = None
+            break
+        elif selection == "2":
+            path_algo = "dijkstra"
+            path_args = input("Start,Stop: ").split(',')
+            break
+        else:
+            print("Invalid Input\n")
+
+    clearScreen()
+
     print('...')
-    display.drawGraph(nodes.values())
+    display.drawGraph(nodes, show_weights, path_algo, path_args)
 
 def editNodes(nodes):
     while True:
@@ -138,6 +172,8 @@ def removeNodes(nodes, toRemove):
     print(f'Successfully removed node(s): {", ".join([node.name for node in removed])}\n')
             
 def viewRelations(nodes):
+    # TODO: sort relations when displaying
+    # TODO: show nodes that aren't connected
     if len(Node.edge_weights) == 0:
         print('No relations defined.\n')
         return
@@ -152,6 +188,7 @@ def viewRelations(nodes):
 
 def addRelation(nodes, toAdd):
     # TODO: doesn't catch already existing relations
+    # TODO: if input is too long, says one or more nodes doesn't exist
     if len(toAdd) < 3:
             print('Specify relations to add. Ex: "-a a,b"\n')
             return    
