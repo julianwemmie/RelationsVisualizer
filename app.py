@@ -2,7 +2,6 @@ import os, time
 import display
 from node import Node
 
-# TODO: update README to include dijkstra's
 # TODO: no need for Node.node_names since made nodes into dict. need to remove Node.node_name functionality
 
 def clearScreen():
