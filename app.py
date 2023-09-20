@@ -1,274 +1,255 @@
-import os, time
-import display
-from node import Node
+import typing as t
 
-# TODO: no need for Node.node_names since made nodes into dict. need to remove Node.node_name functionality
+from graphsManager import GraphsManager
+from display import IDisplay, TurtleDisplay, DearPyGui
+from forceDirectedGraph import ForceDirectedGraph as FDG, NodeBalancer
+from helpers import clearScreen, parseArguments
 
-def clearScreen():
-    os.system('cls' if os.name == 'nt' else 'clear')
+class App:
+    def __init__(self, display: IDisplay, nodeBalancer: NodeBalancer, graphsManager: GraphsManager, defaultGraphName: str = 'untitled') -> None:
+        self.display = display
+        self.nodeBalancer = nodeBalancer
+        self.graphsManager = graphsManager
+        self.graphsManager.createGraph(defaultGraphName)
+        self.graphsManager.currentGraph = defaultGraphName
 
-def main():
-    nodes = {}
-
-    while True:
+    def mainMenu(self):
         clearScreen()
-        print('''\
-Relations Visualizer
-    1. create graph
-    2. edit/view current nodes
-    3. edit/view current relations''')
+        while True:
+            print(
+'''
+1. Display Graph
+2. Edit Nodes
+3. Edit Relations
+4. Select/Edit Graphs
+5. Import/Export Graphs
+6. Exit
+''')
+        
+            userInput = input(' > ')
+            userInput = userInput.strip()
 
-        selection = input(' > ')
-    
-        menu_options = [drawGraph, editNodes, editRelations]
+            if not userInput or len(userInput) > 1:
+                print("Invalid input.")
+                continue
 
-        if selection.isnumeric():
-            selection = int(selection)
-            if 1 <= selection <= len(menu_options):
-                menu_options[selection - 1](nodes)
+            userInput = userInput[0]
+
+            if userInput == '1':
+                self.displayGraph()
+            elif userInput == '2':
+                self.editNodes()
+            elif userInput == '3':
+                self.editRelations()
+            elif userInput == '4':
+                self.editGraphs()
+            elif userInput == '5':
+                self.importExportGraphs()
+            elif userInput == '6':
+                break
             else:
-                print("Invalid Menu Selection")
-                time.sleep(1)
-        else:
-            print("\nInvalid Selection")
-            time.sleep(1)
-
-def drawGraph(nodes):
-    show_weights = False
-    path_algo = None
-    path_args = None
-
-    while True:
-        selection = input("Show relation weights? (Y/N):").upper()
-        if selection == "Y":
-            show_weights = True
-            break
-        elif selection == "N":
-            show_weights = False
-            break
-        else:
-            print("Invalid Input\n")
-
-    while True:
-        print('''\
-Select algorthim:
-    1) None
-    2) Dijkstra's (Greedy, Shortest path)''')
-        selection = input(' > ')
-
-        if selection == "1":
-            path_algo = None
-            break
-        elif selection == "2":
-            path_algo = "dijkstra"
-            path_args = input("Start,Stop: ").split(',')
-            break
-        else:
-            print("Invalid Input\n")
-
-    clearScreen()
-
-    print('...')
-    display.drawGraph(nodes, show_weights, path_algo, path_args)
-
-def editNodes(nodes):
-    while True:
-        print('''\
----------------------------
-Edit/View Nodes:
-    -v | view current nodes
-    -a | add node(s)
-            '-a a,b,c' --> adds nodes a, b, and c
-    -r | remove node(s)
-            '-r a,b,c' --> removes nodes a, b, and c (if exist)
-    -e | exit
-    ''')
-    
-        entry = input(' > ')
-        selection = entry[:2]
+                print('Invalid selection.')
         
-        if selection == '-v':
-            viewNodes(nodes)
-        elif selection == '-a':
-            addNodes(nodes, entry[3:])
-        elif selection == '-r':
-            removeNodes(nodes, entry[3:])
-        elif selection == '-e':
-            return
-        else:
-            print('Invalid entry\n')
-
-def editRelations(nodes):
-    while True:
-        print('''\
----------------------------
-Edit/View Relations:
-    -v | view current relations
-    -a | add relation
-            '-a a,b' --> adds relation between a and b
-    -r | remove relation
-            '-r a,b' --> removes relation bewteen a and b (if exists)
-    -w | edit relation weight
-            '-w a,b,5 --> sets relation weight to 5
-    -e | exit
-    ''')
-        
-        entry = input(' > ')
-        selection = entry[:2]
-        
-        if selection == '-v':
-            viewRelations(nodes)
-        elif selection == '-a':
-            addRelation(nodes, entry[3:])
-        elif selection == '-r':
-            removeRelation(nodes, entry[3:])
-        elif selection == '-w':
-            editRelationWeight(nodes, entry[3:])
-        elif selection == '-e':
-            return
-        else:
-            print('Invalid entry\n')
+    def editNodes(self):
+        while True:
+            print(
+'''
+-l              : List Nodes
+-a [nodeName]   : Add Node
+-r [nodeName]   : Remove Node
+-e              : Exit to main menu
+''')
             
-def viewNodes(nodes):
-    print(f'Currently ({len(nodes)}) nodes:')
-    if len(nodes):
-        print(f'    -{", ".join(sorted(Node.node_names))}')
-    print()
+            userInput = input(' > ')
+            userInput = parseArguments(userInput)
 
-def addNodes(nodes, toAdd):
-    if not len(toAdd):
-        print('Specify nodes to add. Ex: "-a a,b,c"\n')
-        return
+            currentGraph = self.graphsManager.currentGraph
 
-    addedNodes = []
-    for node in toAdd.strip().split(','):
-        if node == '':
-            continue
-        if node in nodes.keys():
-            print(f'Node already exists: {node}')
-            continue
-        nodes[node] = Node(node)
-        addedNodes.append(node)
-        
-    print(f'Successfully added node(s): {", ".join(addedNodes)} \n')
+            if not userInput:
+                print('Invalid input')
+                continue
+            
+            if userInput[0] == '-l':
+                nodes = currentGraph.getNodeNames()
+                print(nodes)
 
-def removeNodes(nodes, toRemove):
-    if not len(toRemove):
-        print('Specify nodes to remove. Ex: "-r a,b,c"\n')
-        return
-    
-    removed = []
-    for node in toRemove.strip().split(','):
-        if node in nodes.keys():
-            removed.append(nodes[node])
-            del nodes[node]
+            elif userInput[0] == '-a' and len(userInput) >= 2:
+                nodeNames = userInput[1:]
+                try:
+                    currentGraph.addNodes(nodeNames)
+                    print(f'Added node(s): {nodeNames}')
+                except NameError as e:
+                    print(e)
+
+            elif userInput[0] == '-r' and len(userInput) >= 2:
+                nodeNames = userInput[1:]
+                try:
+                    currentGraph.removeNodes(nodeNames)
+                    print(f'Removed node(s): {nodeNames}')
+                except NameError as e:
+                    print(e)
                 
-    for node in removed:
-        Node.removeNode(node)
-        for edge in node.edges:
-            edge.edges.remove(node)
-            
-    print(f'Successfully removed node(s): {", ".join([node.name for node in removed])}\n')
-            
-def viewRelations(nodes):
-    # TODO: sort relations when displaying
-    # TODO: show nodes that aren't connected
-    if len(Node.edge_weights) == 0:
-        print('No relations defined.\n')
-        return
-    else:
-        print('Relation | Weight')
-        for relation in Node.edge_weights.items():
-            node1 = relation[0][0]
-            node2 = relation[0][1]
-            weight = relation[1]
+            elif userInput[0] == '-e':
+                clearScreen()
+                break
 
-            print(f'{node1} <-> {node2} | {weight}')
+            else:
+                print('Invalid input or missing arguments')
 
-def addRelation(nodes, toAdd):
-    # TODO: doesn't catch already existing relations
-    # TODO: if input is too long, says one or more nodes doesn't exist
-    if len(toAdd) < 3:
-            print('Specify relations to add. Ex: "-a a,b"\n')
-            return    
+    def editRelations(self):
+        while True:
+            print(
+'''
+-l                          : List Relations
+-a [nodeName], [nodeName]   : Add Relation
+-r [nodeName], [nodeName]   : Remove Relation
+-e                          : Exit to main menu
+''')
+            userInput = input(' > ')
+            userInput = parseArguments(userInput)
 
-    toAdd = toAdd.strip().split(',')
-    for node in toAdd:
-        if node == '':
-            continue
-        if node not in Node.node_names:
-            print('One or more nodes does not exist. \n')
-            return
+            currentGraph = self.graphsManager.currentGraph
 
-    node1 = toAdd[0]
-    node2 = toAdd[1]
+            if not userInput:
+                print('Invalid input')
+                continue
 
-    # get node object from dictionary
-    node1 = nodes[node1]
-    node2 = nodes[node2]
+            if userInput[0] == '-l':
+                relationsMap = currentGraph.relationsMap
+                print('Relations')
+                for name, related in relationsMap.items():
+                    print(f'   {name}: {", ".join(related)}')
 
-    node1.connect(node2)
-    Node.addWeight(node1, node2, 0)
+            elif userInput[0] == '-a' and len(userInput) >= 3:
+                node1, node2 = userInput[1], userInput[2]
+                try:
+                    currentGraph.addRelation(node1, node2)
+                    print(f'Added relation: {node1}, {node2}')
+                except NameError as e:
+                    print(e)
 
-    print(f'Successfully added relation: {node1.name}, {node2.name}\n')
+            elif userInput[0] == '-r' and len(userInput) >= 3:
+                node1, node2 = userInput[1], userInput[2]
+                try:
+                    currentGraph.removeRelation(node1, node2)
+                    print(f'Removed relation: {node1}, {node2}')
+                except NameError as e:
+                    print(e)
 
-def removeRelation(nodes, toRemove):
-    if len(toRemove) < 3:
-            print('Specify relations to remove. Ex: "-a a,b"\n')
-            return    
-        
-    toRemove = toRemove.strip().split(',')
+            elif userInput[0] == '-e':
+                break
 
-    for node in toRemove:
-        if node not in Node.node_names:
-            print('One or more nodes does not exist. \n')
-            return   
-        
-    node1 = toRemove[0]
-    node2 = toRemove[1]
+            else:
+                print('Invalid input or missing arguments')
 
-    # get node object from dictionary
-    node1 = nodes[node1]
-    node2 = nodes[node2]
+    def editGraphs(self):
+        while True:
+            print('Graphs:')
+            for graph in self.graphsManager.graphs:
+                if graph == self.graphsManager.currentGraph:
+                    print(f'   [{graph.name}]')
+                else:
+                    print(f'    {graph.name}')
+            print(
+'''
+-s [graphName]                 : Select graph
+-a [graphName]                 : Add a new graph
+-r [graphName]                 : Remove a graph
+-n [originalName], [newName]   : Rename graph
+-e                              : Exit to main menu
+'''
+            )
 
-    node1.disconnect(node2)
-    Node.removeRelation(node1, node2)
+            userInput = input(' > ')
+            userInput = parseArguments(userInput)
 
-    print(f'Successfully removed relation: {node1.name}, {node2.name}\n')
+            if not userInput:
+                print('Invalid input')
+                continue
 
-def editRelationWeight(nodes, toEdit):
-    if len(toEdit.strip()) < 5:
-        print("Invalid Input\n")
-        return
+            if userInput[0] == '-s' and len(userInput) == 2:
+                graphName = userInput[1]
+                try:
+                    self.graphsManager.currentGraph = graphName
+                except NameError as e:
+                    print(e)
 
-    try:
-        node1, node2, weight = toEdit.split(',')
-    except ValueError:
-        print('Invalid Input\n')
-        return
+            elif userInput[0] == '-a' and len(userInput) >= 2:
+                graphName = userInput[1]
+                try:
+                    self.graphsManager.createGraph(graphName)
+                    print(f'Added graph: {graphName}')
+                except NameError as e:
+                    print(e)
 
-    if node1 == node2:
-        print('Node cannot relate to itself\n')
-        return
+            elif userInput[0] == '-r' and len(userInput) >= 2:
+                graphName = userInput[1]
+                try:
+                    self.graphsManager.deleteGraph(graphName)
+                    print(f'Removed graph: {graphName}')
+                except NameError as e:
+                    print(e)
+                    
+            elif userInput[0] == '-n' and len(userInput) == 3:
+                originalName, newName = userInput[1], userInput[2]
+                try:
+                    self.graphsManager.renameGraph(originalName, newName)
+                    print(f'Renamed graph: {originalName} -> {newName}')
+                except NameError as e:
+                    print(e)
 
-    if (node1 or node2) not in Node.node_names:
-        print('One or more nodes does not exist\n')
-        return
+            elif userInput[0] == '-e':
+                break
 
-    if not weight.isnumeric():
-        print('Weight must be an integer\n')
-        return
+            else:
+                print('Invalid input or missing arguments')
 
-    weight = int(weight)
+    def displayGraph(self):
+        currentGraph = self.graphsManager.currentGraph
+        currentGraph.balanceNodes(self.nodeBalancer)
+        self.display.drawGraph(currentGraph)
 
-    node1 = nodes[node1]
-    node2 = nodes[node2]
+    def importExportGraphs(self):
+        while True:
+            print(
+'''
+-i [fileName]   : Import graph
+-x [fileName]   : Export graph
+-e              : Exit to main menu
+''')
+            userInput = input(' > ')
+            userInput = parseArguments(userInput)
 
-    try:
-        Node.addWeight(node1, node2, weight)
-    except IndexError:
-        print("Relation does not exist\n")
-        return
-    
+            if not userInput:
+                print('Invalid input')
+                continue
+
+            if userInput[0] == '-i' and len(userInput) == 2:
+                fileName = userInput[1]
+                try:
+                    self.graphsManager.importGraph(fileName)
+                    print(f'Imported graph: {fileName}')
+                except Exception as e:
+                    print(e)
+
+            elif userInput[0] == '-x' and len(userInput) == 2:
+                fileName = userInput[1]
+                try:
+                    self.graphsManager.exportGraph(fileName)
+                    print(f'Exported graph: {fileName}')
+                except Exception as e:
+                    print(e)
+
+            elif userInput[0] == '-e':
+                break
+
+            else:
+                print('Invalid input or missing arguments')
+
 if __name__ == '__main__':
-    main()
+    display = TurtleDisplay()
+    # display = DearPyGui()
+    nodeBalancer = FDG()
+    graphsManager = GraphsManager()
+    app = App(display, nodeBalancer, graphsManager)
+    app.mainMenu()
