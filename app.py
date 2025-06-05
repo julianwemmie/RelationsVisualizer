@@ -1,7 +1,7 @@
 import typing as t
 
 from graphsManager import GraphsManager
-from display import IDisplay, TurtleDisplay, DearPyGui
+from display import IDisplay, TurtleDisplay, TkinterDisplay
 from forceDirectedGraph import ForceDirectedGraph as FDG, NodeBalancer
 from helpers import clearScreen, parseArguments
 
@@ -248,7 +248,7 @@ class App:
 
 if __name__ == '__main__':
     display = TurtleDisplay()
-    # display = DearPyGui()
+    # display = TkinterDisplay()
     nodeBalancer = FDG()
     graphsManager = GraphsManager()
     app = App(display, nodeBalancer, graphsManager)
