@@ -15,6 +15,7 @@ in implementing algorthims, practicing object oriented programing concepts, and 
     - Menu system to view, add, and edit both nodes and relations
     - Catches invalid inputs, duplicate elements, and unwanted relations
  - Graph Display Implemented with Python Turtle
+ - Optional Tkinter-based viewer
 
  ## Screenshots
  <img src="screenshots/adding_nodes.PNG" alt="adding nodes via command-line" height="400">
